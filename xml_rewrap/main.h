@@ -4,4 +4,6 @@
 
 std::string getFileNameFromParameter(int argc, char* argv[]);
 std::ifstream openSourceFile(std::string& fileName);
-void closeFiles(std::ifstream& fi);
+std::string setOutputFileName(std::string& fileName);
+std::ofstream openOutputFile(std::string& fileName);
+void closeFiles(std::ifstream& fi, std::ofstream& fo);

@@ -3,6 +3,10 @@
 #include <algorithm>
 #include <string>
 
+bool firstLine = true;
+int tabulators = 0;
+int lineCounter = 1;
+
 int main(int argc, char* argv[]) {
 	auto sourceFileName = getFileNameFromParameter(argc, argv);
 	auto fi = openSourceFile(sourceFileName);
@@ -63,6 +67,43 @@ void copyFile(std::ifstream& fi, std::ofstream& fo) {
 	std::string oneLine;
 	do {
 		std::getline(fi, oneLine);
-		std::cout << oneLine << std::endl;
+		processOneLine(fo, oneLine);
 	} while (!fi.eof());
+}
+
+//Format and write out xml lines.
+void processOneLine(std::ofstream& fo, std::string oneLine) {
+	char previous = ' ';
+	for (const auto c : oneLine) {
+		if (c == 9 || c == 10 || c == 13)
+			continue;
+		if ((previous == '<' || previous == ' ' || previous == 'c>' || previous == '/') && c == ' ')
+			continue;
+		if (previous == '<' && c == '/' && tabulators > 0)
+			--tabulators;
+		if (previous == '<') {
+			if (!firstLine) {
+				//std::cout << std::endl;
+				fo.write(NEWLINE, 1);
+				for (int i = tabulators; i > 0; --i) {
+					//std::cout << TABULATOR;
+					fo.write(TABULATOR, 2);
+				}
+			}
+			//std::cout << '<';
+			fo.write("<", 1);
+		}
+		if (c != '<') {
+			//std::cout << c;
+			fo.write(&c, 1);
+		}
+		if (previous == '<' && c != '/' && !firstLine)
+			++tabulators;
+		if (previous == '/' && c == '>' && tabulators > 0)
+			--tabulators;
+		previous = c;
+		if (c == '>') {
+			firstLine = false;
+		}
+	}
 }

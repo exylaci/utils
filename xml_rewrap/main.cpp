@@ -8,12 +8,16 @@ int tabulators = 0;
 int lineCounter = 1;
 bool inATag = false;
 bool dataBetweenTags = false;
+std::string inLineTagName;
+std::string tagName;
+bool tagsBetweenTag = false;
 
 int main(int argc, char* argv[]) {
 	auto sourceFileName = getFileNameFromParameter(argc, argv);
 	auto fi = openSourceFile(sourceFileName);
 	auto outputFileName = setOutputFileName(sourceFileName);
 	auto fo = openOutputFile(outputFileName);
+	inLineTagName = getTagNameFromParameter(argc, argv);
 	copyFile(fi, fo);
 	closeFiles(fi, fo);
 	std::cout << "File rewrapped successfully." << std::endl;
@@ -84,7 +88,7 @@ void processOneLine(std::ofstream& fo, std::string oneLine) {
 		if (previous == '<' && c == '/' && tabulators > 0)
 			--tabulators;
 		if (previous == '<') {
-			if (!firstLine && !dataBetweenTags) {
+			if (!firstLine && !dataBetweenTags && !tagsBetweenTag) {
 				//std::cout << std::endl;
 				fo.write(NEWLINE, 1);
 				for (int i = tabulators; i > 0; --i) {
@@ -94,6 +98,7 @@ void processOneLine(std::ofstream& fo, std::string oneLine) {
 			}
 			inATag = true;
 			dataBetweenTags = false;
+			tagName = "";
 			//std::cout << '<';
 			fo.write("<", 1);
 		}
@@ -113,5 +118,22 @@ void processOneLine(std::ofstream& fo, std::string oneLine) {
 			inATag = false;
 			firstLine = false;
 		}
+		buildTagName(c);
 	}
+}
+
+std::string getTagNameFromParameter(int argc, char* argv[]) {
+	if (argc > 2) {
+		std::cout << "Tags between " << argv[2] << " are kept in one line." << std::endl;
+	}
+	return argv[2];
+}
+
+void buildTagName(char c) {
+	if (c != '<' && c != ' ' && c != '>')
+		tagName += c;
+	if (tagName == inLineTagName)
+		tagsBetweenTag = true;
+	if (tagName[0] == '/' && tagName.substr(1,tagName.length()-1) == inLineTagName)
+		tagsBetweenTag = false;
 }

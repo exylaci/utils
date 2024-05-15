@@ -13,3 +13,5 @@ void copyFile(std::ifstream& fi, std::ofstream& fo);
 void closeFiles(std::ifstream& fi, std::ofstream& fo);
 
 void processOneLine(std::ofstream& fo, std::string oneLine);
+std::string getTagNameFromParameter(int argc,char* argv[]);
+void buildTagName(char c);

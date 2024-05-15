@@ -6,6 +6,8 @@
 bool firstLine = true;
 int tabulators = 0;
 int lineCounter = 1;
+bool inATag = false;
+bool dataBetweenTags = false;
 
 int main(int argc, char* argv[]) {
 	auto sourceFileName = getFileNameFromParameter(argc, argv);
@@ -82,7 +84,7 @@ void processOneLine(std::ofstream& fo, std::string oneLine) {
 		if (previous == '<' && c == '/' && tabulators > 0)
 			--tabulators;
 		if (previous == '<') {
-			if (!firstLine) {
+			if (!firstLine && !dataBetweenTags) {
 				//std::cout << std::endl;
 				fo.write(NEWLINE, 1);
 				for (int i = tabulators; i > 0; --i) {
@@ -90,12 +92,16 @@ void processOneLine(std::ofstream& fo, std::string oneLine) {
 					fo.write(TABULATOR, 2);
 				}
 			}
+			inATag = true;
+			dataBetweenTags = false;
 			//std::cout << '<';
 			fo.write("<", 1);
 		}
 		if (c != '<') {
 			//std::cout << c;
 			fo.write(&c, 1);
+			if (c != '>' && !inATag)
+				dataBetweenTags = true;
 		}
 		if (previous == '<' && c != '/' && !firstLine)
 			++tabulators;
@@ -103,6 +109,8 @@ void processOneLine(std::ofstream& fo, std::string oneLine) {
 			--tabulators;
 		previous = c;
 		if (c == '>') {
+			dataBetweenTags = false;
+			inATag = false;
 			firstLine = false;
 		}
 	}
